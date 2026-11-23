@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineWorld – Explore Movies</title>
+    <!-- Google Fonts: Poppins for Headings & Inter for Body Text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons (Film, Stars, Search, Socials) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- NOTE FOR VS CODE: Copy everything inside this <style> tag into a separate file named 'style.css' 
+         and link it in <head> using: <link rel="stylesheet" href="style.css"> -->
+    <style>
+        /* ==========================================================================
+           1. CSS VARIABLES & RESET (style.css)
+           ========================================================================== */
+        :root {
+            --bg-primary: #07080f;        /* Deepest Cinematic Black */
+            --bg-secondary: #0d101d;      /* Dark Navy Surface */
+            --bg-card: #131728;           /* Elevated Card Background */
+            --accent-red: #e50914;        /* Cinema Red */
+            --accent-red-hover: #ff1e29;
+            --accent-purple: #7c3aed;     /* Royal Neon Purple */
+            --accent-gold: #f5c518;       /* IMDb Golden Yellow */
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --transition-smooth: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth; /* Smooth scrolling across sections */
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .logo {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        /* Reusable Container */
+        .container {
+            width: 90%;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Section Spacing & Headers */
+        section {
+            padding: 80px 0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 40px;
+            border-left: 4px solid var(--accent-red);
+            padding-left: 16px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        /* ==========================================================================
+           2. NAVIGATION BAR (Sticky & Responsive via Pure CSS Checkbox Hack)
+           ========================================================================== */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(7, 8, 15, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 16px 0;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .logo i {
+            color: var(--accent-red);
+            font-size: 1.8rem;
+            filter: drop-shadow(0 0 8px rgba(229, 9, 20, 0.5));
+        }
+
+        .logo span {
+            background: linear-gradient(90deg, #fff, var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .nav-links a {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            position: relative;
+            transition: var(--transition-smooth);
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--text-main);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-red), var(--accent-purple));
+            transition: var(--transition-smooth);
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Search Box */
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box input {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 9px 38px 9px 16px;
+            border-radius: 50px;
+            font-size: 0.88rem;
+            width: 210px;
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        .search-box input:focus {
+            width: 250px;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 14px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: none;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-purple));
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.35);
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(124, 58, 237, 0.55);
+        }
+
+        /* Mobile Menu Toggle (Pure CSS) */
+        #menu-toggle {
+            display: none;
+        }
+
+        .hamburger {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        /* ==========================================================================
+           3. HERO SECTION
+           ========================================================================== */
+        .hero {
+            position: relative;
+            min-height: 88vh;
+            display: flex;
+            align-items: center;
+            padding: 60px 0;
+            /* High-res cinematic sci-fi backdrop with dark gradient overlays */
+            background: 
+                linear-gradient(90deg, rgba(7, 8, 15, 0.96) 0%, rgba(7, 8, 15, 0.78) 50%, rgba(7, 8, 15, 0.25) 100%),
+                linear-gradient(0deg, var(--bg-primary) 0%, transparent 30%),
+                url('https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1920&q=85') center/cover no-repeat;
+        }
+
+        .hero-content {
+            max-width: 650px;
+            animation: fadeSlideUp 0.9s ease-out forwards;
+        }
+
+        .featured-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(124, 58, 237, 0.2);
+            border: 1px solid rgba(124, 58, 237, 0.5);
+            color: #d8b4fe;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+        }
+
+        .hero-title {
+            font-size: 3.6rem;
+            font-weight: 800;
+            line-height: 1.12;
+            margin-bottom: 16px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .hero-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .imdb-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--accent-gold);
+            color: #000;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .hero-desc {
+            color: #d1d5db;
+            font-size: 1.05rem;
+            margin-bottom: 32px;
+            line-height: 1.7;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-red);
+            color: #fff;
+            padding: 14px 30px;
+            font-size: 1rem;
+            box-shadow: 0 8px 25px rgba(229, 9, 20, 0.45);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-red-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(229, 9, 20, 0.65);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 14px 30px;
+            font-size: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(124, 58, 237, 0.25);
+            border-color: var(--accent-purple);
+            transform: translateY(-3px);
+        }
+
+        /* ==========================================================================
+           4. POPULAR MOVIES GRID (6 Cards with Hover Animations)
+           ========================================================================== */
+        .popular-section {
+            background-color: var(--bg-primary);
+        }
+
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 28px;
+        }
+
+        .movie-card {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            transition: var(--transition-smooth);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(124, 58, 237, 0.5);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(124, 58, 237, 0.2);
+        }
+
+        .poster-wrapper {
+            position: relative;
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+            background-color: #1a1f36;
+        }
+
+        .poster-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .movie-card:hover .poster-wrapper img {
+            transform: scale(1.08);
+        }
+
+        .card-rating {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(7, 8, 15, 0.85);
+            backdrop-filter: blur(6px);
+            color: var(--accent-gold);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid rgba(245, 197, 24, 0.3);
+        }
+
+        /* Hover Overlay inside Poster */
+        .poster-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(7, 8, 15, 0.95) 10%, rgba(124, 58, 237, 0.3) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: var(--transition-smooth);
+        }
+
+        .movie-card:hover .poster-overlay {
+            opacity: 1;
+        }
+
+        .overlay-btn {
+            background: var(--accent-red);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transform: translateY(15px);
+            transition: var(--transition-smooth);
+        }
+
+        .movie-card:hover .overlay-btn {
+            transform: translateY(0);
+        }
+
+        .card-body {
+            padding: 18px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-main);
+            transition: color 0.2s;
+        }
+
+        .movie-card:hover .card-title {
+            color: var(--accent-gold);
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .genre-tag {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 4px 10px;
+            border-radius: 6px;
+            color: #d1d5db;
+            font-size: 0.78rem;
+        }
+
+        /* ==========================================================================
+           5. MOVIE INFORMATION SECTION (Split Poster & Details)
+           ========================================================================== */
+        .movie-info-section {
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .info-card {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 48px;
+            background: var(--bg-card);
+            padding: 36px;
+            border-radius: 24px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            align-items: center;
+        }
+
+        .info-poster {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(124, 58, 237, 0.35);
+        }
+
+        .info-poster img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .info-details h2 {
+            font-size: 2.3rem;
+            margin-bottom: 12px;
+        }
+
+        .info-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .pill {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-subtle);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: #e5e7eb;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pill i {
+            color: var(--accent-purple);
+        }
+
+        .pill.rating-pill {
+            background: rgba(245, 197, 24, 0.15);
+            border-color: rgba(245, 197, 24, 0.4);
+            color: var(--accent-gold);
+            font-weight: 700;
+        }
+
+        .pill.rating-pill i {
+            color: var(--accent-gold);
+        }
+
+        .info-specs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 18px;
+            background: rgba(7, 8, 15, 0.5);
+            border-radius: 12px;
+        }
+
+        .spec-item span {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .spec-item strong {
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+
+        .synopsis-title {
+            font-size: 1.15rem;
+            margin-bottom: 8px;
+            color: var(--accent-gold);
+        }
+
+        .synopsis-text {
+            color: #d1d5db;
+            font-size: 0.98rem;
+            line-height: 1.75;
+            margin-bottom: 24px;
+        }
+
+        /* ==========================================================================
+           6. CAST AND CREW SECTION
+           ========================================================================== */
+        .cast-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 24px;
+        }
+
+        .cast-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            transition: var(--transition-smooth);
+        }
+
+        .cast-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent-purple);
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.2);
+        }
+
+        .cast-avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            margin: 0 auto 14px;
+            overflow: hidden;
+            border: 3px solid var(--accent-red);
+            padding: 3px;
+            background: var(--bg-primary);
+        }
+
+        .cast-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .cast-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .cast-role {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* ==========================================================================
+           7. TRAILER SECTION (Responsive 16:9 YouTube Embed)
+           ========================================================================== */
+        .trailer-section {
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+
+        .trailer-wrapper {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 14px;
+            background: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .trailer-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        /* ==========================================================================
+           8. RELATED MOVIES SECTION
+           ========================================================================== */
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 24px;
+        }
+
+        .related-card {
+            background: var(--bg-card);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            transition: var(--transition-smooth);
+        }
+
+        .related-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent-gold);
+        }
+
+        .related-poster {
+            aspect-ratio: 2 / 3;
+            overflow: hidden;
+        }
+
+        .related-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .related-card:hover .related-poster img {
+            transform: scale(1.06);
+        }
+
+        .related-info {
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .related-info h4 {
+            font-size: 0.98rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .related-rating {
+            color: var(--accent-gold);
+            font-weight: 700;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        /* ==========================================================================
+           9. FOOTER
+           ========================================================================== */
+        footer {
+            background-color: #05060b;
+            border-top: 1px solid var(--border-subtle);
+            padding: 64px 0 28px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.5fr;
+            gap: 40px;
+            margin-bottom: 48px;
+        }
+
+        .footer-about p {
+            color: var(--text-muted);
+            margin-top: 16px;
+            font-size: 0.92rem;
+            max-width: 380px;
+        }
+
+        .footer-heading {
+            font-size: 1.1rem;
+            margin-bottom: 18px;
+            color: var(--text-main);
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-red);
+        }
+
+        .contact-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-bottom: 12px;
+        }
+
+        .contact-list i {
+            color: var(--accent-purple);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .social-icons a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            transition: var(--transition-smooth);
+        }
+
+        .social-icons a:hover {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+
+        /* ==========================================================================
+           10. CSS KEYFRAME ANIMATIONS
+           ========================================================================== */
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ==========================================================================
+           11. RESPONSIVE DESIGN (Tablet & Mobile Breakpoints)
+           ========================================================================== */
+        @media (max-width: 992px) {
+            .info-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .info-poster {
+                max-width: 300px;
+                margin: 0 auto;
+            }
+
+            .info-pills {
+                justify-content: center;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 820px) {
+            .hamburger {
+                display: block;
+            }
+
+            .nav-links,
+            .nav-actions {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                background: var(--bg-secondary);
+                padding: 20px;
+                border-radius: 16px;
+                border: 1px solid var(--border-subtle);
+                margin-top: 12px;
+            }
+
+            .nav-container {
+                flex-wrap: wrap;
+            }
+
+            /* Show mobile menu when checkbox is checked */
+            #menu-toggle:checked ~ .nav-links,
+            #menu-toggle:checked ~ .nav-actions {
+                display: flex;
+            }
+
+            .search-box,
+            .search-box input {
+                width: 100%;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            section {
+                padding: 56px 0;
+            }
+
+            .hero-title {
+                font-size: 2.1rem;
+            }
+
+            .section-title {
+                font-size: 1.6rem;
+            }
+
+            .info-specs {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======================================================================
+         1. NAVIGATION BAR
+         ====================================================================== -->
+    <header>
+        <div class="container nav-container">
+            <!-- Brand Logo -->
+            <a href="#home" class="logo">
+                <i class="fa-solid fa-film"></i>
+                <span>CineWorld</span>
+            </a>
+
+            <!-- Pure CSS Mobile Hamburger Toggle -->
+            <input type="checkbox" id="menu-toggle">
+            <label for="menu-toggle" class="hamburger" aria-label="Toggle Menu">
+                <i class="fa-solid fa-bars"></i>
+            </label>
+
+            <!-- Navigation Links -->
+            <nav class="nav-links">
+                <a href="#home" class="active">Home</a>
+                <a href="#movies">Movies</a>
+                <a href="#upcoming">Upcoming</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+            </nav>
+
+            <!-- Search Bar & Login Button -->
+            <div class="nav-actions">
+                <div class="search-box">
+                    <input type="text" placeholder="Search movies, actors...">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <a href="#login" class="btn btn-login">
+                    <i class="fa-regular fa-user"></i> Login
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- ==================================================================
+             2. HERO SECTION
+             ================================================================== -->
+        <section id="home" class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="featured-badge">
+                        <i class="fa-solid fa-fire"></i> #1 Trending Blockbuster
+                    </div>
+                    <h1 class="hero-title">Interstellar: Beyond the Horizon</h1>
+                    <div class="hero-meta">
+                        <span class="imdb-badge"><i class="fa-solid fa-star"></i> IMDb 8.9/10</span>
+                        <span>2025</span>
+                        <span>•</span>
+                        <span>Sci-Fi / Adventure / Drama</span>
+                        <span>•</span>
+                        <span>2h 49m</span>
+                    </div>
+                    <p class="hero-desc">
+                        When Earth's biosphere faces irreversible collapse, a courageous crew of astronauts journeys through a newly discovered wormhole near Saturn to find a habitable home for humanity across the cosmos.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#trailer" class="btn btn-primary">
+                            <i class="fa-solid fa-play"></i> Watch Trailer
+                        </a>
+                        <a href="#movies" class="btn btn-secondary">
+                            <i class="fa-solid fa-compass"></i> Explore Movies
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             3. POPULAR MOVIES SECTION (6 Movie Cards)
+             ================================================================== -->
+        <section id="movies" class="popular-section">
+            <div class="container">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Popular Movies</h2>
+                        <p class="section-subtitle">Top-rated blockbusters trending worldwide this week</p>
+                    </div>
+                </div>
+
+                <div class="movies-grid">
+                    <!-- Movie Card 1 -->
+                    <article class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?auto=format&fit=crop&w=600&q=80" alt="Neon Eclipse Poster">
+                            <span class="card-rating"><i class="fa-solid fa-star"></i> 8.8</span>
+                            <div class="poster-overlay">
+                                <a href="#movie-details" class="overlay-btn">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">Neon Eclipse</h3>
+                            <div class="card-meta">
+                                <span>2025</span>
+                                <span class="genre-tag">Cyberpunk / Action</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Movie Card 2 -->
+                    <article class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80" alt="The Dark Citadel Poster">
+                            <span class="card-rating"><i class="fa-solid fa-star"></i> 8.6</span>
+                            <div class="poster-overlay">
+                                <a href="#movie-details" class="overlay-btn">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">The Dark Citadel</h3>
+                            <div class="card-meta">
+                                <span>2024</span>
+                                <span class="genre-tag">Fantasy / Mystery</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Movie Card 3 -->
+                    <article class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?auto=format&fit=crop&w=600&q=80" alt="Crimson Tide: Zero Hour Poster">
+                            <span class="card-rating"><i class="fa-solid fa-star"></i> 8.4</span>
+                            <div class="poster-overlay">
+                                <a href="#movie-details" class="overlay-btn">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">Shadow Protocol</h3>
+                            <div class="card-meta">
+                                <span>2025</span>
+                                <span class="genre-tag">Thriller / Spy</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Movie Card 4 -->
+                    <article class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=600&q=80" alt="Orbit 9 Poster">
+                            <span class="card-rating"><i class="fa-solid fa-star"></i> 9.0</span>
+                            <div class="poster-overlay">
+                                <a href="#movie-details" class="overlay-btn">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">Orbit 9</h3>
+                            <div class="card-meta">
+                                <span>2025</span>
+                                <span class="genre-tag">Sci-Fi / Drama</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Movie Card 5 -->
+                    <article class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&q=80" alt="Midnight Symphony Poster">
+                            <span class="card-rating"><i class="fa-solid fa-star"></i> 8.2</span>
+                            <div class="poster-overlay">
+                                <a href="#movie-details" class="overlay-btn">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">Midnight Symphony</h3>
+                            <div class="card-meta">
+                                <span>2023</span>
+                                <span class="genre-tag">Musical / Romance</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Movie Card 6 -->
+                    <article class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=600&q=80" alt="Last Horizon Poster">
+                            <span class="card-rating"><i class="fa-solid fa-star"></i> 8.7</span>
+                            <div class="poster-overlay">
+                                <a href="#movie-details" class="overlay-btn">View Details</a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">Last Horizon</h3>
+                            <div class="card-meta">
+                                <span>2024</span>
+                                <span class="genre-tag">Adventure / Action</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             4. MOVIE INFORMATION SECTION
+             ================================================================== -->
+        <section id="movie-details" class="movie-info-section">
+            <div class="container">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Featured Movie Spotlight</h2>
+                        <p class="section-subtitle">In-depth overview, technical specs, and storyline</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <!-- Left: Movie Poster -->
+                    <div class="info-poster">
+                        <img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=700&q=85" alt="Interstellar Beyond the Horizon Poster">
+                    </div>
+
+                    <!-- Right: Movie Metadata & Synopsis -->
+                    <div class="info-details">
+                        <h2>Interstellar: Beyond the Horizon</h2>
+                        <div class="info-pills">
+                            <span class="pill rating-pill"><i class="fa-solid fa-star"></i> 8.9 / 10 IMDb</span>
+                            <span class="pill"><i class="fa-regular fa-calendar"></i> Nov 14, 2025</span>
+                            <span class="pill"><i class="fa-regular fa-clock"></i> 2h 49m</span>
+                            <span class="pill"><i class="fa-solid fa-film"></i> Sci-Fi, Adventure</span>
+                        </div>
+
+                        <div class="info-specs">
+                            <div class="spec-item">
+                                <span>Director</span>
+                                <strong>Christopher Vance</strong>
+                            </div>
+                            <div class="spec-item">
+                                <span>Screenplay</span>
+                                <strong>Elena Rostova &amp; Mark Sterling</strong>
+                            </div>
+                            <div class="spec-item">
+                                <span>Language</span>
+                                <strong>English (IMAX 70mm)</strong>
+                            </div>
+                            <div class="spec-item">
+                                <span>Box Office</span>
+                                <strong>$842.5 Million</strong>
+                            </div>
+                        </div>
+
+                        <h3 class="synopsis-title">Storyline &amp; Synopsis</h3>
+                        <p class="synopsis-text">
+                            In the late 21st century, global crop blights and relentless dust storms threaten human survival. Former NASA pilot Joseph Cooper is recruited for a top-secret mission aboard the endurance spacecraft Lazarus. Crossing through a gravitational anomaly near Saturn, Cooper and his scientific team must navigate relativistic time dilation, rogue ocean worlds, and moral dilemmas where every hour spent on an alien planet costs seven years back on Earth.
+                        </p>
+
+                        <a href="#trailer" class="btn btn-primary">
+                            <i class="fa-solid fa-circle-play"></i> Watch Official Trailer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             5. CAST AND CREW SECTION
+             ================================================================== -->
+        <section id="cast" class="cast-section">
+            <div class="container">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Top Cast &amp; Crew</h2>
+                        <p class="section-subtitle">Meet the acclaimed actors and visionaries behind the film</p>
+                    </div>
+                </div>
+
+                <div class="cast-grid">
+                    <!-- Cast 1 -->
+                    <div class="cast-card">
+                        <div class="cast-avatar">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80" alt="Liam Vance">
+                        </div>
+                        <h3 class="cast-name">Liam Mercer</h3>
+                        <p class="cast-role">Capt. Joseph Cooper</p>
+                    </div>
+
+                    <!-- Cast 2 -->
+                    <div class="cast-card">
+                        <div class="cast-avatar">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80" alt="Elena Brooks">
+                        </div>
+                        <h3 class="cast-name">Clara Hathaway</h3>
+                        <p class="cast-role">Dr. Amelia Brand</p>
+                    </div>
+
+                    <!-- Cast 3 -->
+                    <div class="cast-card">
+                        <div class="cast-avatar">
+                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80" alt="Marcus Kane">
+                        </div>
+                        <h3 class="cast-name">Marcus Sterling</h3>
+                        <p class="cast-role">Prof. John Brand</p>
+                    </div>
+
+                    <!-- Cast 4 -->
+                    <div class="cast-card">
+                        <div class="cast-avatar">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Sophia Chen">
+                        </div>
+                        <h3 class="cast-name">Sophia Lin</h3>
+                        <p class="cast-role">Murph Cooper</p>
+                    </div>
+
+                    <!-- Cast 5 -->
+                    <div class="cast-card">
+                        <div class="cast-avatar">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80" alt="Christopher Vance">
+                        </div>
+                        <h3 class="cast-name">Christopher Vance</h3>
+                        <p class="cast-role">Director &amp; Producer</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             6. TRAILER SECTION
+             ================================================================== -->
+        <section id="trailer" class="trailer-section">
+            <div class="container">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Official IMAX Trailer</h2>
+                        <p class="section-subtitle">Experience the breathtaking visuals in 4K Ultra HD</p>
+                    </div>
+                </div>
+
+                <div class="trailer-wrapper">
+                    <div class="video-container">
+                        <!-- Embedded YouTube Trailer (Interstellar Official Trailer) -->
+                        <iframe 
+                            src="https://www.youtube.com/embed/zSWdZVtXT7E?rel=0" 
+                            title="Interstellar Official Trailer" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <div class="trailer-bar">
+                        <div>
+                            <h3>Interstellar: Beyond the Horizon — Official Theatrical Trailer</h3>
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">Dolby Atmos • 4K HDR • 2:54 mins</p>
+                        </div>
+                        <a href="https://www.youtube.com/watch?v=zSWdZVtXT7E" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                            <i class="fa-solid fa-play"></i> Play Trailer on YouTube
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================================================================
+             7. RELATED / UPCOMING MOVIES SECTION
+             ================================================================== -->
+        <section id="upcoming" class="related-section">
+            <div class="container">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Related &amp; Upcoming Movies</h2>
+                        <p class="section-subtitle">More sci-fi and thriller experiences picked for you</p>
+                    </div>
+                </div>
+
+                <div class="related-grid">
+                    <!-- Related 1 -->
+                    <div class="related-card">
+                        <div class="related-poster">
+                            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=500&q=80" alt="Starfall">
+                        </div>
+                        <div class="related-info">
+                            <h4>Starfall Odyssey</h4>
+                            <span class="related-rating"><i class="fa-solid fa-star"></i> 8.5</span>
+                        </div>
+                    </div>
+
+                    <!-- Related 2 -->
+                    <div class="related-card">
+                        <div class="related-poster">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=500&q=80" alt="Chronos">
+                        </div>
+                        <div class="related-info">
+                            <h4>Chronos Gate</h4>
+                            <span class="related-rating"><i class="fa-solid fa-star"></i> 8.1</span>
+                        </div>
+                    </div>
+
+                    <!-- Related 3 -->
+                    <div class="related-card">
+                        <div class="related-poster">
+                            <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=500&q=80" alt="Nebula">
+                        </div>
+                        <div class="related-info">
+                            <h4>Nebula Rising</h4>
+                            <span class="related-rating"><i class="fa-solid fa-star"></i> 8.7</span>
+                        </div>
+                    </div>
+
+                    <!-- Related 4 -->
+                    <div class="related-card">
+                        <div class="related-poster">
+                            <img src="https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?auto=format&fit=crop&w=500&q=80" alt="Cyber City">
+                        </div>
+                        <div class="related-info">
+                            <h4>Blade of Orion</h4>
+                            <span class="related-rating"><i class="fa-solid fa-star"></i> 8.3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ======================================================================
+         8. FOOTER
+         ====================================================================== -->
+    <footer id="about">
+        <div class="container" id="contact">
+            <div class="footer-grid">
+                <!-- About CineWorld -->
+                <div class="footer-about">
+                    <a href="#home" class="logo">
+                        <i class="fa-solid fa-film"></i>
+                        <span>CineWorld</span>
+                    </a>
+                    <p>
+                        CineWorld is your ultimate digital cinema destination. Discover trending blockbusters, explore detailed cast profiles, watch high-definition trailers, and stay updated on upcoming theatrical releases.
+                    </p>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Navigation -->
+                <div>
+                    <h4 class="footer-heading">Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#movies">Popular Movies</a></li>
+                        <li><a href="#movie-details">Featured Spotlight</a></li>
+                        <li><a href="#trailer">Watch Trailers</a></li>
+                        <li><a href="#upcoming">Upcoming Releases</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Information -->
+                <div>
+                    <h4 class="footer-heading">Contact Us</h4>
+                    <ul class="contact-list">
+                        <li><i class="fa-solid fa-location-dot"></i> 402 Cinema Boulevard, Film City, HYD 500081</li>
+                        <li><i class="fa-solid fa-envelope"></i> support@cineworldmovies.com</li>
+                        <li><i class="fa-solid fa-phone"></i> +91 98765 43210</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 CineWorld – Explore Movies. All Rights Reserved. Designed with HTML5 &amp; CSS3.</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
